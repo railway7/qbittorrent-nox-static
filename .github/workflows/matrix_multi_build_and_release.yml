@@ -15,7 +15,7 @@ jobs:
         arch_type: [armhf]
         libtorrent_version: ["1.2", "2.0"]
         icu_step_name: [icu skipped, icu]
-        build_tool: ["", cmake]
+        build_tool: [cmake]
         include:
           - build_tool: "cmake"
             build_tool_name: "cmake-"
