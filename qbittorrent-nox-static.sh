@@ -875,14 +875,7 @@ _multi_arch() {
 			case "${qbt_cross_name}" in
 				armhf)
 					case "${qbt_cross_target}" in
-						alpine)
-							cross_arch="armhf"
-							qbt_cross_host="armv6-linux-musleabihf"
-							qbt_cross_openssl="linux-armv4"
-							qbt_cross_boost="arm"
-							qbt_cross_qtbase="linux-arm-gnueabi-g++"
-							;;
-						debian | ubuntu)
+						alpine | debian | ubuntu)
 							cross_arch="armel"
 							qbt_cross_host="arm-linux-gnueabi"
 							qbt_cross_openssl="linux-armv4"

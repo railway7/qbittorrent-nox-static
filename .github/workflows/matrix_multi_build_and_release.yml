@@ -10,9 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os_id: [debian]
-        os_version_id: [bullseye]
-        arch_type: [armhf]
+        os_id: [apline]
+        os_version_id: [edge]
+        arch_type: [armel]
         libtorrent_version: ["1.2", "2.0"]
         icu_step_name: [icu skipped, icu]
         build_tool: [cmake]

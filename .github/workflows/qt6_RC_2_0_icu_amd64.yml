@@ -9,7 +9,7 @@ jobs:
       run:
         shell: bash
     container:
-      image: alpine:la test
+      image: alpine:latest
     env:
       qbt_build_tool: "cmake"
       qbt_qt_version: "6.1"
