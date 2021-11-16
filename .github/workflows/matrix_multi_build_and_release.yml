@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os_id: [apline]
+        os_id: [alpine]
         os_version_id: [edge]
         arch_type: [armel]
         libtorrent_version: ["1.2", "2.0"]
