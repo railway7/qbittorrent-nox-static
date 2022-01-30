@@ -108,7 +108,7 @@ jobs:
         run: docker exec -w /root multiarch bash qbittorrent-nox-static.sh qttools
 
       - name: Docker - qbittorrent
-        run: docker exec -w /root multiarch bash qbittorrent-nox-static.sh qbittorrent
+        run: docker exec -w /root multiarch bash qbittorrent-nox-static.sh all
 
       - name: Docker - "Set release asset name"
         run: docker exec -w /root/${{ env.build_dir }}/completed multiarch mv -f qbittorrent-nox ${{ matrix.arch_type }}-${{ matrix.build_tool_name }}${{ matrix.icu_matrix_name }}qbittorrent-nox
