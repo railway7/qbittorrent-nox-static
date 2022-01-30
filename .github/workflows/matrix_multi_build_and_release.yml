@@ -10,8 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os_id: [alpine]
-        os_version_id: [edge]
+        os_id: [ubuntu]
+        os_version_id: [latest]
         arch_type: [s390x]
         libtorrent_version: ["1.2", "2.0"]
         icu_step_name: [icu skipped, icu]
