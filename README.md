@@ -2,12 +2,30 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9817ad80d35c480aa9842b53001d55b0)](https://app.codacy.com/gh/userdocs/qbittorrent-nox-static?utm_source=github.com&utm_medium=referral&utm_content=userdocs/qbittorrent-nox-static&utm_campaign=Badge_Grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/userdocs/qbittorrent-nox-static/badge)](https://www.codefactor.io/repository/github/userdocs/qbittorrent-nox-static)
-[![matrix multi build and release](https://github.com/userdocs/qbittorrent-nox-static/actions/workflows/matrix_multi_build_and_release.yml/badge.svg)](https://github.com/userdocs/qbittorrent-nox-static/actions/workflows/matrix_multi_build_and_release.yml)
+[![matrix multi build and release](https://github.com/userdocs/qbittorrent-nox-static/actions/workflows/matrix_multi_build_and_release_qbt_workflow_files.yml/badge.svg)](https://github.com/userdocs/qbittorrent-nox-static/actions/workflows/matrix_multi_build_and_release.yml)
 [![Debian Based CI](https://github.com/userdocs/qbittorrent-nox-static/actions/workflows/debian_based_CI.yml/badge.svg)](https://github.com/userdocs/qbittorrent-nox-static/actions/workflows/debian_based_CI.yml)
+
+## Linked Github repositories
+
+This build script uses and depends on some related repositories
+
+-   [qbt-musl-cross-make](https://github.com/userdocs/qbt-musl-cross-make)
+
+    `qbt-musl-cross-make` builds the customized [musl cross make tool chains](https://git.zv.io/toolchains/musl-cross-make) this build script uses for Alpine based builds.
+
+-   [qbt-workflow-files](https://github.com/userdocs/qbt-workflow-files)
+
+    This is a dependency tracker that checks for and releases all of the dependencies this build script needs as a [latest release](https://github.com/userdocs/qbt-workflow-files/releases/latest)
+
+-   [qbt-cmake-ninja-crossbuilds](https://github.com/userdocs/qbt-cmake-ninja-crossbuilds)
+
+    This is a packaged release of cmake and ninja build for crossbuilds on debian based systems.
+
+-   [qbittorrent-nox-static-legacy](https://github.com/userdocs/qbittorrent-nox-static-legacy) for people who want to use qBittorrent v4.3.9 built against current versions of the remaining dependencies. Libtorrent v1.2 branch only.
 
 ## Summary
 
-The [qbittorrent-nox-static](https://github.com/userdocs/qbittorrent-nox-static) project is a `bash` build script that compiles a static `qbittorrent-nox` binary using the latest available dependencies from their source. These statically linked binaries can run on any matching CPU architecture and are not OS specific. This means you can run a `x86_64` Alpine edge build on any Linux based OS of like CentOS | Fedora | OpenSuse | Debian Stretch | Ubuntu Xenial and more.
+The `qbittorrent-nox-static` project is a `bash` build script that compiles a static `qbittorrent-nox` binary using the latest available dependencies from their source. These statically linked binaries can run on any matching CPU architecture and are not OS specific. This means you can run a `x86_64` Alpine edge build on any Linux based OS of like CentOS | Fedora | OpenSuse | Debian Stretch | Ubuntu Xenial and more.
 
 ## Documentation
 
@@ -55,61 +73,97 @@ wget -qO ~/bin/qbittorrent-nox https://github.com/userdocs/qbittorrent-nox-stati
 chmod 700 ~/bin/qbittorrent-nox
 ```
 
-## ICU builds
+## Libtorrent versions
 
-Each build has two versions due to how `qtbase` builds when it detects `ICU` .
+🟠 Libtorrent `v1.2` is currently the main branch supported by qBittorrent since a change with the release of [4.4.5](https://www.qbittorrent.org/news.php)
 
-🟢 The `iconv`  / non `ICU` build can be considered the default build.
+Libtorrent `v2.0` builds are still released as latest releases as it it does not really matter to this project as it always builds and releases for both `v1.2` and `v2.0`. See the next section for how to get the version you need via the latest release URL.
 
-ICU replaces `iconv` if detected when `qtbase` is built and doubles the static build size due to the ICU libraries being linked into the final static binary.
+You can view the current latest and pre releases and tags here.
 
-🔵 When not using `ICU` everything is built against `iconv`
+🔵 <https://github.com/userdocs/qbittorrent-nox-static/releases>
 
-🟠 `ICU` builds have nothing to do with performance.
+## Getting the Version you want via the latest release URL
 
-The reason I do two builds is that `ICU` is an automated build flag preference for `QT` (and boost when I was building that) and I considered that it may one day be a default or only option and `ICU` seems to be the preferred choice for this kind of library. So it's really not a critical option but more of a choice.
+Since this project builds and releases both v1.2 and v2.0 builds simultaneously we can use the commands below to always get the latest version of the related pre release via the latest release `dependency-version.json` asset.
 
-🔵 `ICU` is a preferred build path automatically chosen by the programs built if it is present on the system.
+Using this method it does not matter which version is the latest release or pre release as the commands will provide you the version specific info you need for the twinned latest/pre releases.
 
-You can pick either version you want, if it works then just enjoy it. The only difference you may experience is how the WebUi displays Unicode characters.
+For Libtorrent `v1.2`
 
-## Libtorrent v2 builds
+```bash
+jq -r '. | "release-\(.qbittorrent)_v\(.libtorrent_1_2)"' < <(curl -sL https://github.com/userdocs/qbittorrent-nox-static/releases/latest/download/dependency-version.json)
+```
 
-🟠 Libtorrent v1.2 is currently the main branch supported by qBittorrent
+For Libtorrent `v2.0`
 
-These are released as pre releases until qBittorrent officially adopts libtorrent v2 as the default version. Once v2 is the default I will switch them around on future releases.
+```bash
+jq -r '. | "release-\(.qbittorrent)_v\(.libtorrent_2_0)"' < <(curl -sL https://github.com/userdocs/qbittorrent-nox-static/releases/latest/download/dependency-version.json)
+```
 
-You can view the pre releases and tags here.
+## Revisions
 
-🔵 https://github.com/userdocs/qbittorrent-nox-static/releases
+The build has 5 main dependencies tracked that will trigger a rebuild on an update being available.
 
-## Cmake builds
+-   qBittorrent
+-   Libtorrent
+-   Qt
+-   Boost
+-   Openssl
 
-Cmake builds where libtorrent and qbittorrent are compiled using cmake and ninja are available
+When a new build is triggered for updating `qBittorrent` or `Libtorrent` a new release will be generated as the release tags will be updated.
 
-🟠 Cmake builds do not get stripped (debug symbols). Use cmake builds for stacktrace / debugging features built into qbittorrent.
+Since I do not append revision info to tags `Qt` - `Boost` - `Openssl` builds will only update the existing release assets.
 
-## Libtorrent v2 + QT6 + Qbittorrent using cmake
+To track these revisions you can use this command. All new releases start at a revision of `0` and increment by `1` per revised build.
 
-🟢 The script is ready to build using cmake and is QT6 ready. As soon as qbittorrrent has official support this script can build it.
+```bash
+jq -r '.revision' < <(curl -sL "https://github.com/userdocs/qbittorrent-nox-static/releases/latest/download/dependency-version.json")
+```
+
+## Dependency json
+
+From `release-4.4.5` each release contains a `dependency-version.json` file that provide some key version information for that is shared across the latest release and the twinned pre release. This helps to overcome some limitations of the API for consistently and directly accessing this information.
+
+Downloading the file like this:
+
+```bash
+curl -sL https://github.com/userdocs/qbittorrent-nox-static/releases/latest/download/dependency-version.json
+```
+
+Will output a result like this:
+
+```json
+{
+	"qbittorrent": "4.4.5",
+	"qt5": "5.15.7",
+	"qt6": "6.4.0",
+	"libtorrent_1_2": "1.2.18",
+	"libtorrent_2_0": "2.0.8",
+	"boost": "1.80.0",
+	"openssl": "3.0.7",
+	"revision": "1"
+}
+```
+
+As demonstrated above by using the latest release URL we can construct the tag of the twinned pre release and therefore the asset URL with no margin for error.
 
 ## Build table - Dependencies - arch - OS - build tools
 
-|    Deps     | x86_64 | aarch64 | armv7 | Debian based | Alpine | make  | cmake |  b2   | qmake |
-| :---------: | :----: | :-----: | :---: | :----------: | :----: | :---: | :---: | :---: | :---: |
-| libexecinfo |   ✅    |    ✅    |   ✅   |      ❌       |   ✅    |   ❌   |   ❌   |   ❌   |   ❌   |
-|    bison    |   ✅    |    ✅    |   ✅   |      ✅       |   ❌    |   ✅   |   ❌   |   ❌   |   ❌   |
-|    gawk     |   ✅    |    ✅    |   ✅   |      ✅       |   ❌    |   ✅   |   ❌   |   ❌   |   ❌   |
-|    glibc    |   ✅    |    ✅    |   ✅   |      ✅       |   ❌    |   ✅   |   ❌   |   ❌   |   ❌   |
-|    zlib     |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ✅   |   ❌   |   ❌   |   ❌   |
-|    iconv    |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ✅   |   ❌   |   ❌   |   ❌   |
-|     icu     |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ✅   |   ❌   |   ❌   |   ❌   |
-|   openssl   |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ✅   |   ❌   |   ❌   |   ❌   |
-|    boost    |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ✅   |   ❌   |   ✅   |   ❌   |
-| libtorrent  |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ✅   |   ✅   |   ✅   |   ❌   |
-|   qt5base   |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ❌   |   ❌   |   ❌   |   ✅   |
-|   qt5ools   |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ❌   |   ❌   |   ❌   |   ✅   |
-|   qt6base   |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ❌   |   ✅   |   ❌   |   ❌   |
-|   qt6ools   |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ❌   |   ✅   |   ❌   |   ❌   |
-| qbittorrent |   ✅    |    ✅    |   ✅   |      ✅       |   ✅    |   ❌   |   ✅   |   ❌   |   ✅   |
-
+|       Deps        | x86_64 | aarch64 | armv7 | armhf (v6) | Debian based | Alpine | make | cmake | b2  | qmake |
+| :---------------: | :----: | :-----: | :---: | :--------: | :----------: | :----: | :--: | :---: | :-: | :---: |
+|       bison       |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ❌   |  ✅  |  ❌   | ❌  |  ❌   |
+|       gawk        |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ❌   |  ✅  |  ❌   | ❌  |  ❌   |
+|       glibc       |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ❌   |  ✅  |  ❌   | ❌  |  ❌   |
+|       zlib        |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ✅  |  ❌   | ❌  |  ❌   |
+|       iconv       |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ✅  |  ❌   | ❌  |  ❌   |
+|        icu        |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ✅  |  ❌   | ❌  |  ❌   |
+|      openssl      |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ✅  |  ❌   | ❌  |  ❌   |
+|       boost       |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ✅  |  ❌   | ✅  |  ❌   |
+|    libtorrent     |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ✅  |  ✅   | ✅  |  ❌   |
+|      qt5base      |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ❌  |  ❌   | ❌  |  ✅   |
+|     qt5tools      |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ❌  |  ❌   | ❌  |  ✅   |
+| double conversion |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ❌  |  ✅   | ❌  |  ❌   |
+|      qt6base      |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ❌  |  ✅   | ❌  |  ❌   |
+|     qt6tools      |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ❌  |  ✅   | ❌  |  ❌   |
+|    qbittorrent    |   ✅   |   ✅    |  ✅   |     ✅     |      ✅      |   ✅   |  ❌  |  ✅   | ❌  |  ✅   |

@@ -5,6 +5,11 @@ on:
       - "qbittorrent-nox-static.sh"
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,43 +20,54 @@ jobs:
       fail-fast: false
       matrix:
         container_id: [debian, ubuntu]
-        container_codename: [buster, bullseye, bionic, focal, hirsute]
-        build_tool_flag: ["", -c]
-        libtorrent_tag: [-lt RC_1_2, -lt RC_2_0]
+        container_codename: [bullseye, focal, jammy]
+        build_tool: ["qmake", "cmake"]
+        libtorrent_version: ["1.2", "2.0"]
         exclude:
-          - container_id: debian
-            container_codename: bionic
           - container_id: debian
             container_codename: focal
           - container_id: debian
-            container_codename: hirsute
-          - container_id: ubuntu
-            container_codename: buster
+            container_codename: jammy
           - container_id: ubuntu
             container_codename: bullseye
         include:
-          - build_tool_flag: ""
-            build_tool_name: qmake
-          - build_tool_flag: -c
-            build_tool_name: cmake
-          - libtorrent_tag: -lt RC_1_2
-            libtorrent_version: RC-1-2
-          - libtorrent_tag: -lt RC_2_0
-            libtorrent_version: RC-2-0
-    name: "${{ matrix.container_id }}-${{ matrix.container_codename }}-${{ matrix.libtorrent_version }}-${{ matrix.build_tool_name }}"
+          - build_tool: "qmake"
+            qbt_qt_version: "5"
+          - build_tool: "cmake"
+            qbt_qt_version: "6"
+
+    name: "${{ matrix.container_id }}-${{ matrix.container_codename }}-${{ matrix.libtorrent_version }}-qt-${{ matrix.qbt_qt_version }}-${{ matrix.build_tool }}"
     env:
       build_dir: "qbt-build"
-      artifact_name: "${{ matrix.container_id }}-${{ matrix.container_codename }}-${{ matrix.libtorrent_version }}-${{ matrix.build_tool_name }}-nox"
+      artifact_name: "${{ matrix.container_id }}-${{ matrix.container_codename }}-${{ matrix.libtorrent_version }}-qt-${{ matrix.qbt_qt_version }}-${{ matrix.build_tool }}-nox"
     container:
       image: ${{ matrix.container_id }}:${{ matrix.container_codename }}
       env:
         LANG: en_GB.UTF-8
         DEBIAN_FRONTEND: noninteractive
         TZ: Europe/London
+        qbt_libtorrent_version: ${{ matrix.libtorrent_version }}
+        qbt_qt_version: ${{ matrix.qbt_qt_version }}
+        qbt_build_tool: ${{ matrix.build_tool }}
+        qbt_workflow_files: yes
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
 
-      - run: bash qbittorrent-nox-static.sh -bs-a ${{ matrix.build_tool_flag }}
+      - name: Host - update
+        run: apt-get update
+
+      - name: Host - upgrade
+        run: apt-get -y upgrade
+
+      - name: bionic - apt-get install gcc-8-base g++-8
+        if: matrix.build_tool == 'cmake' && matrix.container_codename == 'bionic'
+        run: |
+          apt-get install -y gcc-8 g++-8
+          echo "CC=gcc-8" >> $GITHUB_ENV
+          echo "AR=gcc-ar-8" >> $GITHUB_ENV
+          echo "CXX=g++-8" >> $GITHUB_ENV
+
+      - run: bash qbittorrent-nox-static.sh -bs-a
       - run: bash qbittorrent-nox-static.sh bison
       - run: bash qbittorrent-nox-static.sh gawk
       - run: bash qbittorrent-nox-static.sh glibc
@@ -59,14 +75,16 @@ jobs:
       - run: bash qbittorrent-nox-static.sh iconv
       - run: bash qbittorrent-nox-static.sh icu
       - run: bash qbittorrent-nox-static.sh openssl
-      - run: bash qbittorrent-nox-static.sh boost ${{ matrix.build_tool_flag }}
-      - run: bash qbittorrent-nox-static.sh libtorrent ${{ matrix.libtorrent_tag }} ${{ matrix.build_tool_flag }}
+      - run: bash qbittorrent-nox-static.sh boost
+      - run: bash qbittorrent-nox-static.sh libtorrent
+      - run: bash qbittorrent-nox-static.sh double_conversion
+        if: matrix.build_tool == 'cmake'
       - run: bash qbittorrent-nox-static.sh qtbase -i
       - run: bash qbittorrent-nox-static.sh qttools
-      - run: bash qbittorrent-nox-static.sh qbittorrent ${{ matrix.build_tool_flag }}
+      - run: bash qbittorrent-nox-static.sh qbittorrent
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.artifact_name }}
           path: ${{ env.build_dir }}/completed/qbittorrent-nox
